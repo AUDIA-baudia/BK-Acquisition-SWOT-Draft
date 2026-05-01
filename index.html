@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversation Recap and Current-State Confirmation | Baker Katz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bk-dark: #1a1a2e;
+    --bk-darker: #0f0f1e;
+    --bk-blue: #9fc5e8;
+    --bk-blue-bright: #d4eaff;
+    --bk-blue-dim: rgba(159,197,232,0.15);
+    --bk-gold: #c9a227;
+    --bk-gold-bright: #f0d35a;
+    --bk-gold-dim: rgba(201,162,39,0.12);
+    --bk-red: #b10202;
+    --bk-white: #f8f9fa;
+    --bk-grey: #d9d9d9;
+    --bk-text: #e0e0e0;
+    --bk-muted: #8a8a9a;
+    --bk-hover-bg: rgba(159,197,232,0.14);
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Instrument Serif', Georgia, serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; font-size:18px; }
+  body { font-family: var(--font-sans); background: var(--bk-darker); color: var(--bk-text); line-height:1.7; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1.1rem 3rem;
+    background:rgba(15,15,30,0.7); backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(159,197,232,0.08);
+    transition: all .3s;
+  }
+  nav.scrolled { padding:.8rem 3rem; background:rgba(15,15,30,0.95); }
+  nav .brand { font-weight:700; font-size:1.1rem; letter-spacing:.04em; color:#fff; }
+  nav .brand span { color:var(--bk-blue); }
+  nav ul { list-style:none; display:flex; gap:2rem; }
+  nav ul li a { color:var(--bk-muted); text-decoration:none; font-size:.85rem; font-weight:500; letter-spacing:.06em; text-transform:uppercase; transition:color .2s; }
+  nav ul li a:hover { color:#fff; }
+
+  /* SECTIONS */
+  section { padding:7rem 3rem; max-width:1200px; margin:0 auto; }
+  .section-label {
+    font-size:.82rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--bk-blue); margin-bottom:.75rem; display:block;
+  }
+  h1 { font-family:var(--font-serif); font-size:clamp(3.2rem,6.5vw,4.8rem); color:#fff; line-height:1.08; margin-bottom:1.5rem; font-weight:400; }
+  h1 em { font-style:italic; color:var(--bk-blue); }
+  h2 { font-family:var(--font-serif); font-size:clamp(2.4rem,4.5vw,3.4rem); color:#fff; line-height:1.12; margin-bottom:1.2rem; font-weight:400; }
+  h3 { font-size:1.3rem; font-weight:600; color:#fff; margin-bottom:.5rem; }
+  p { color:var(--bk-text); max-width:760px; font-size:1.05rem; }
+  .lead { font-size:1.25rem; color:var(--bk-muted); max-width:720px; }
+
+  /* HERO */
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+    padding-top:6rem; position:relative; overflow:hidden;
+  }
+  .hero::before {
+    content:''; position:absolute; top:-40%; right:-20%; width:700px; height:700px;
+    background:radial-gradient(circle, rgba(159,197,232,0.06) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .hero .meta { display:flex; gap:1.5rem; margin-top:2rem; flex-wrap:wrap; }
+  .hero .meta-tag {
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.5rem 1.2rem; border-radius:100px; font-size:.88rem; font-weight:500;
+    background:var(--bk-blue-dim); color:var(--bk-blue); border:1px solid rgba(159,197,232,0.15);
+    transition: all .3s;
+  }
+  .hero .meta-tag:hover { background:rgba(159,197,232,0.3); color:#fff; border-color:var(--bk-blue-bright); box-shadow:0 0 16px rgba(159,197,232,0.2); }
+  .hero-sub { display:flex; align-items:center; gap:.6rem; margin-top:2.5rem; }
+  .hero-sub .avatar {
+    width:40px; height:40px; border-radius:50%; background:var(--bk-blue-dim); display:flex; align-items:center; justify-content:center; font-size:.82rem; font-weight:700; color:var(--bk-blue);
+  }
+  .hero-sub span { font-size:.95rem; color:var(--bk-muted); }
+  .hero-sub span strong { color:#fff; }
+
+  /* DIVIDER */
+  .divider { border:none; border-top:1px solid rgba(159,197,232,0.08); margin:0 3rem; }
+
+  /* MATH HIGHLIGHT BANNER */
+  .math-banner {
+    margin-top:2.5rem;
+    background:linear-gradient(135deg, rgba(159,197,232,0.08), rgba(201,162,39,0.06));
+    border:1px solid rgba(201,162,39,0.25);
+    border-radius:16px; padding:2.8rem 3rem;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:2rem;
+    transition:all .3s;
+  }
+  .math-banner:hover { border-color:var(--bk-gold-bright); box-shadow:0 12px 40px rgba(201,162,39,0.12); }
+  .math-stat { text-align:left; }
+  .math-stat .num { font-family:var(--font-serif); font-size:2.6rem; color:var(--bk-gold-bright); margin-bottom:.3rem; line-height:1; }
+  .math-stat .label { font-size:.82rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--bk-muted); margin-bottom:.4rem; }
+  .math-stat .detail { font-size:.95rem; color:var(--bk-text); }
+
+  /* CARDS */
+  .cards-2x2 { display:grid; grid-template-columns:1fr 1fr; gap:1.8rem; margin-top:2.5rem; }
+  .cards-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1.8rem; margin-top:2.5rem; }
+  .card {
+    background:rgba(159,197,232,0.04); border:1px solid rgba(159,197,232,0.08);
+    border-radius:16px; padding:2.5rem; transition:all .3s ease;
+  }
+  .card:hover { border-color:var(--bk-blue-bright); background:var(--bk-hover-bg); transform:translateY(-4px); box-shadow:0 12px 40px rgba(159,197,232,0.15); }
+  .card .icon {
+    width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; font-weight:700; margin-bottom:1.2rem;
+    background:var(--bk-blue-dim); color:var(--bk-blue); border:1px solid rgba(159,197,232,0.12);
+    transition: all .3s;
+  }
+  .card:hover .icon { background:rgba(159,197,232,0.35); color:#fff; box-shadow:0 0 12px rgba(159,197,232,0.25); }
+  .card h3 { margin-bottom:.6rem; font-size:1.3rem; }
+  .card p { font-size:1rem; color:var(--bk-muted); }
+  .card ul { list-style:none; margin-top:.8rem; }
+  .card ul li { padding:.45rem 0; font-size:.97rem; color:var(--bk-text); display:flex; align-items:flex-start; gap:.6rem; line-height:1.5; }
+  .card ul li::before { content:'?'; color:var(--bk-blue); font-weight:700; flex-shrink:0; margin-top:1px; }
+  .card.note ul li::before { content:'·'; color:var(--bk-blue); font-weight:700; flex-shrink:0; font-size:1.4rem; line-height:1; margin-top:0; }
+
+  /* SWOT */
+  .swot-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.8rem; margin-top:2.5rem; }
+  .swot-box {
+    border-radius:16px; padding:2.5rem; border:1px solid rgba(159,197,232,0.08);
+    transition:all .3s;
+  }
+  .swot-box:hover { transform:translateY(-3px); }
+  .swot-box.strengths { background:rgba(159,197,232,0.06); }
+  .swot-box.strengths:hover { border-color:var(--bk-blue-bright); background:rgba(159,197,232,0.14); box-shadow:0 12px 40px rgba(159,197,232,0.12); }
+  .swot-box.weaknesses { background:rgba(201,162,39,0.06); }
+  .swot-box.weaknesses:hover { border-color:var(--bk-gold-bright); background:rgba(201,162,39,0.14); box-shadow:0 12px 40px rgba(201,162,39,0.1); }
+  .swot-box.opportunities { background:rgba(46,233,10,0.06); }
+  .swot-box.opportunities:hover { border-color:#7fff6b; background:rgba(46,233,10,0.14); box-shadow:0 12px 40px rgba(46,233,10,0.1); }
+  .swot-box.threats { background:rgba(177,2,2,0.06); }
+  .swot-box.threats:hover { border-color:#ff7070; background:rgba(177,2,2,0.14); box-shadow:0 12px 40px rgba(177,2,2,0.08); }
+  .swot-box h3 { font-size:1rem; text-transform:uppercase; letter-spacing:.1em; margin-bottom:1.2rem; }
+  .swot-box.strengths h3 { color:var(--bk-blue); }
+  .swot-box.weaknesses h3 { color:var(--bk-gold); }
+  .swot-box.opportunities h3 { color:#5ed44b; }
+  .swot-box.threats h3 { color:#e05555; }
+  .swot-box ul { list-style:none; }
+  .swot-box ul li { padding:.55rem 0; font-size:1rem; color:var(--bk-text); border-bottom:1px solid rgba(255,255,255,0.04); line-height:1.5; }
+  .swot-box ul li:last-child { border:none; }
+
+  /* PROBLEM PILLARS */
+  .problem-pillars { display:grid; grid-template-columns:repeat(5,1fr); gap:1.5rem; margin-top:2.5rem; }
+  .problem-pillar {
+    text-align:center; padding:2.5rem 1.2rem; border-radius:16px;
+    background:rgba(159,197,232,0.04); border:1px solid rgba(159,197,232,0.08);
+    transition:all .3s;
+  }
+  .problem-pillar:hover { border-color:var(--bk-blue-bright); background:var(--bk-hover-bg); transform:translateY(-4px); box-shadow:0 12px 40px rgba(159,197,232,0.15); }
+  .problem-pillar .num { font-family:var(--font-serif); font-size:2.2rem; color:var(--bk-blue); margin-bottom:.6rem; transition:color .3s; }
+  .problem-pillar:hover .num { color:var(--bk-blue-bright); text-shadow:0 0 20px rgba(159,197,232,0.4); }
+  .problem-pillar h3 { font-size:.95rem; margin-bottom:.5rem; }
+  .problem-pillar p { font-size:.86rem; color:var(--bk-muted); margin:0 auto; max-width:200px; }
+
+  /* TIMELINE */
+  .timeline { margin-top:2.5rem; position:relative; padding-left:2.5rem; }
+  .timeline::before { content:''; position:absolute; left:8px; top:10px; bottom:10px; width:2px; background:rgba(159,197,232,0.15); }
+  .tl-item { position:relative; margin-bottom:2.5rem; }
+  .tl-item::before {
+    content:''; position:absolute; left:-2.5rem; top:8px; width:18px; height:18px;
+    border-radius:50%; background:var(--bk-dark); border:2px solid var(--bk-blue);
+    transition:all .3s;
+  }
+  .tl-item:hover::before { background:var(--bk-blue); box-shadow:0 0 18px rgba(159,197,232,0.45); }
+  .tl-item h3 { font-size:1.15rem; }
+  .tl-item p { font-size:1.05rem; color:var(--bk-muted); }
+
+  /* CTA */
+  .cta-section { text-align:center; padding:6rem 3rem; }
+  .cta-section h2 { margin-bottom:1.2rem; }
+  .cta-section p { margin:0 auto 2rem; }
+  .btn {
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding:1rem 2.4rem; border-radius:100px; font-size:1rem; font-weight:600;
+    text-decoration:none; transition:all .3s; cursor:pointer; border:none;
+  }
+  .btn-outline { background:transparent; border:1px solid rgba(159,197,232,0.2); color:var(--bk-blue); }
+  .btn-outline:hover { background:rgba(159,197,232,0.2); color:#fff; border-color:var(--bk-blue-bright); box-shadow:0 0 20px rgba(159,197,232,0.15); }
+
+  /* FOOTER */
+  footer {
+    text-align:center; padding:3rem; font-size:.88rem; color:var(--bk-muted);
+    border-top:1px solid rgba(159,197,232,0.06);
+  }
+
+  /* FADE-IN */
+  .fade-in { opacity:0; transform:translateY(24px); transition:opacity .6s ease, transform .6s ease; }
+  .fade-in.visible { opacity:1; transform:translateY(0); }
+
+  /* RESPONSIVE */
+  @media(max-width:768px) {
+    html { font-size:16px; }
+    nav { padding:.8rem 1.5rem; }
+    nav ul { display:none; }
+    section { padding:4rem 1.5rem; }
+    .swot-grid, .cards-2x2, .cards-3 { grid-template-columns:1fr; }
+    .math-banner { grid-template-columns:1fr 1fr; }
+    .problem-pillars { grid-template-columns:1fr 1fr; }
+    .divider { margin:0 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="topNav">
+  <div class="brand">AUDIA <span>·</span> Baker Katz</div>
+  <ul>
+    <li><a href="#context">Context</a></li>
+    <li><a href="#math">The Math</a></li>
+    <li><a href="#swot">SWOT</a></li>
+    <li><a href="#problems">Problems</a></li>
+    <li><a href="#confirm">Questions</a></li>
+    <li><a href="#your-move">Your Move</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="fade-in visible">
+    <span class="section-label">Conversation Recap and Current-State Confirmation</span>
+    <h1>Capturing Baker Katz<br>Current State <em>Accurately</em></h1>
+    <p class="lead">A working recap of the April 27 SPIN-led growth-strategy conversation, built for Jack's review. The aim is full buy-in on the current state we have captured before we lock in an acquisition strategy that everyone agrees on, north star to first steps.</p>
+    <div class="meta">
+      <span class="meta-tag">SPIN Working Session</span>
+      <span class="meta-tag">57 Min Video</span>
+      <span class="meta-tag">90-Day BD Sprint</span>
+      <span class="meta-tag">Discretionary Fund Math</span>
+      <span class="meta-tag">Tech Stack Discovery</span>
+    </div>
+    <div class="hero-sub">
+      <div class="avatar">BA</div>
+      <span>Prepared by <strong>Brian Audia</strong> · AUDIA Consulting · May 1, 2026</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CONTEXT -->
+<section id="context">
+  <div class="fade-in">
+    <span class="section-label">01 / Context</span>
+    <h2>What This Document Is</h2>
+    <p style="margin-bottom:1rem;">On Monday, April 27 at 3:00 PM CDT, Brian and Jack ran a 57-minute working session over Google Meet. The format was a SPIN sequence anchored on a single goal: get business development on track and pointed in the right direction, with an acquisition strategy that everyone agrees on from a north star down to the initial steps in how it gets executed. Jack walked through a full SWOT he had prepared from his January planning notes and his eighteen months in seat, and surfaced a set of structural problems that the work ahead will need to solve.</p>
+    <p style="margin-bottom:1rem;">This document does two things. First, it captures what Jack said in a clean, durable format so the working session does not live only inside a Google Meet transcript. Second, it lists the specific questions designed to confirm we have the current state right before we commit to a strategy and the project plan that follows from it. Confirming current state matters because everything downstream rests on this baseline being accurate.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- THE MATH -->
+<section id="math">
+  <div class="fade-in">
+    <span class="section-label">02 / The Math Picture</span>
+    <h2>The Capital-and-Goal Gap Jack Surfaced</h2>
+    <p style="margin-bottom:1rem;">The single most important thing Jack named is the gap between the three-year acquisition goal and the discretionary fund as currently structured. He came back to one phrase: "I keep coming back to the how." Everything downstream (deal screening, underwriting, brokerage relationships, technology, disposition cadence) ultimately serves answering that question. The numbers below are Jack's working assumptions stated on the call, which is exactly why we need to confirm them before building a plan around them.</p>
+  </div>
+
+  <div class="math-banner fade-in">
+    <div class="math-stat">
+      <div class="num">$32.5M</div>
+      <div class="label">Discretionary Fund</div>
+      <div class="detail">Raised four years ago. Originally set to expire about now. Extended approximately eighteen months through end of December 2027.</div>
+    </div>
+    <div class="math-stat">
+      <div class="num">~50%</div>
+      <div class="label">Currently Deployed</div>
+      <div class="detail">Roughly half deployed in four years. Two of those four years overlap with Jack's tenure.</div>
+    </div>
+    <div class="math-stat">
+      <div class="num">20</div>
+      <div class="label">Asset Goal in 3 Years</div>
+      <div class="detail">Seven of which need to be 100,000 SF or larger. Set in the January planning meeting.</div>
+    </div>
+    <div class="math-stat">
+      <div class="num">~$70M</div>
+      <div class="label">Equity Required</div>
+      <div class="detail">Jack's back-of-envelope: $20M average deal × 7 large deals at 70% leverage equals $42M, plus the other 13 deals brings the total need to roughly $70M of equity.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SWOT -->
+<section id="swot">
+  <div class="fade-in">
+    <span class="section-label">03 / Jack's SWOT</span>
+    <h2>The Picture from the Acquisitions Seat</h2>
+    <p style="margin-bottom:1rem;">Jack walked through his SWOT in his own words. The framing below preserves his categories and his examples. The SWOT is structural: it is about the way the firm currently sources, screens, underwrites, and capitalizes deals. None of it is a critique of the people. Jack was clear and consistent on that point.</p>
+  </div>
+  <div class="swot-grid fade-in">
+    <div class="swot-box strengths">
+      <h3>Strengths</h3>
+      <ul>
+        <li>Twenty-plus years of experience and a proven model that has worked for investors</li>
+        <li>Decision-making agency. The equity is fully discretionary, which means the principals control deployment</li>
+        <li>Deep market knowledge and an existing relationship infrastructure in greater Houston</li>
+        <li>A GP-friendly waterfall and a low-fee posture, which is unusually attractive to investors</li>
+      </ul>
+    </div>
+    <div class="swot-box weaknesses">
+      <h3>Weaknesses</h3>
+      <ul>
+        <li>An institutional bias toward downside and worst-case framing despite a stated value-add and opportunistic mandate</li>
+        <li>Deal screening that leans heavily on feedback from one or two represented tenants. One tenant saying no can kill a deal that another tenant might still want</li>
+        <li>A weekly screening cadence that is informal and conversational, not template-driven on the front end</li>
+        <li>Templates exist but are not always intuitive or sufficient for every deal</li>
+        <li>Underwriting gated on IRR, even though the average hold is seven to ten years and IRR is largely an exit-driven metric</li>
+        <li>Investment criteria written broadly enough that "value add and opportunistic" is not consistently operationalized</li>
+      </ul>
+    </div>
+    <div class="swot-box opportunities">
+      <h3>Opportunities</h3>
+      <ul>
+        <li>Process redesign on the front end of deal screening and underwriting, including a sell-hold analysis on every deal</li>
+        <li>A centralized CRM that combines relationships, deals, equity opportunities, and development pipeline in one place</li>
+        <li>A market-data rolodex that captures what asks and signed rents look like, which deals are active, and which tenants are moving</li>
+        <li>AI tooling for the upfront work: lease abstracts, title document review, screening triage, and other administrative load</li>
+        <li>Refining or rebuilding internal Excel models so they align with how the firm actually holds and operates assets</li>
+      </ul>
+    </div>
+    <div class="swot-box threats">
+      <h3>Threats</h3>
+      <ul>
+        <li>Institutional capital flooding back into Texas retail. Fee-driven competitors charging two to five points on acquisition, plus annual asset management fees, plus disposition fees</li>
+        <li>A post-COVID shift in the broker and owner ecosystem. Shops that used to feed deals to Baker Katz are now trying to deploy capital themselves and are no longer first-call partners</li>
+        <li>Constraints on raising new capital. The current GP-friendly structure is excellent for the principals and existing investors but harder to sell to new LPs without a clearer disposition cadence and demonstrated returned capital</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PROBLEMS -->
+<section id="problems">
+  <div class="fade-in">
+    <span class="section-label">04 / The Five Surfaced Problems</span>
+    <h2>Where the 90-Day Sprint Goes to Work</h2>
+    <p class="lead">The SWOT collapses to five concrete problem areas. Each one is a candidate workstream for the BD plan. The order below is the order Jack surfaced them, not yet the priority order. Stack-ranking is one of the things we will do together once the current state is confirmed.</p>
+  </div>
+  <div class="problem-pillars fade-in">
+    <div class="problem-pillar">
+      <div class="num">01</div>
+      <h3>Deal-Screening SOP</h3>
+      <p>Tighten the front end so the firm stops chasing deals for weeks before walking away.</p>
+    </div>
+    <div class="problem-pillar">
+      <div class="num">02</div>
+      <h3>IRR vs Cash-on-Cash</h3>
+      <p>Reconsider which metric gates the front end given the seven-to-ten-year hold profile.</p>
+    </div>
+    <div class="problem-pillar">
+      <div class="num">03</div>
+      <h3>Top-20 List</h3>
+      <p>Stand up a working broker, owner, and equity-partner list that survives Monday meetings.</p>
+    </div>
+    <div class="problem-pillar">
+      <div class="num">04</div>
+      <h3>Centralized CRM</h3>
+      <p>One place for relationships, deals, equity opportunities, development, and market data.</p>
+    </div>
+    <div class="problem-pillar">
+      <div class="num">05</div>
+      <h3>Disposition Cadence</h3>
+      <p>Rolling sell-hold analysis to make the firm investable to new LPs through visible returned capital.</p>
+    </div>
+  </div>
+  <div class="fade-in" style="margin-top:3rem;">
+    <p>Jack also self-rated the firm's data-centricity at four to five out of ten. Underwriting assumptions and market intel come from the principals' intrinsic knowledge rather than from a queryable system. He named this as a constraint on his own ability to participate in the deal-screening conversation on equal footing. We will treat this as a sixth, cross-cutting condition rather than a standalone problem because it shows up inside every one of the five above.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CONFIRMATION QUESTIONS -->
+<section id="confirm">
+  <div class="fade-in">
+    <span class="section-label">05 / Current-State Confirmation Questions</span>
+    <h2>What We Need to Confirm Before We Plan</h2>
+    <p class="lead">The questions below are organized by the same six themes the SWOT and problem list surfaced. Each one is designed to either validate the current understanding or expose a gap we need to fix before drafting the plan. Take them in order. Where you have an answer, put it down. Where it needs Jason and Kenneth to weigh in, flag it as such.</p>
+  </div>
+
+  <div class="cards-2x2 fade-in">
+    <div class="card">
+      <div class="icon">A</div>
+      <h3>Capital and Fund Structure</h3>
+      <p>Confirming the math behind the gap is the first job. Numbers Jack stated on the call need to be locked in writing.</p>
+      <ul>
+        <li>Is $32.5M the precise raise amount, and is "approximately half deployed" the right characterization as of today?</li>
+        <li>What is the exact current expiration date on the fund and what triggered the eighteen-month extension?</li>
+        <li>What does the LP base actually look like today: how many investors, friends-and-family share versus institutional, average commitment size?</li>
+        <li>Is there a written investment period restriction, or only the fund expiration, that limits when new acquisitions can be made?</li>
+        <li>If the goal is roughly $70M of equity over three years, what portion of that is contemplated to come from the existing fund versus a new vehicle, a coinvestment structure, or programmatic equity?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="icon">B</div>
+      <h3>Deal-Screening Process</h3>
+      <p>The weekly walk-through deserves a clean current-state map before we propose anything different.</p>
+      <ul>
+        <li>Walk through a typical Monday meeting. Who is in the room, who runs the agenda, and how does a deal go from "Jack mentioned it" to "we are pursuing it"?</li>
+        <li>Where do new deal leads land first today: email, broker call, a shared inbox, a spreadsheet, somewhere else?</li>
+        <li>What templates currently exist on the front end, and which ones does Jack feel are not fit for purpose?</li>
+        <li>Can Jack name two or three recent deals where the firm chased it for weeks and then walked away, and what tipped each one?</li>
+        <li>What would a "no" at the front end look like that would feel decisive instead of feeling like a moving target?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="icon">C</div>
+      <h3>Underwriting and Models</h3>
+      <p>Argus plus internal Excel is the current stack. Need to ground the IRR-versus-cash-on-cash conversation in actual models.</p>
+      <ul>
+        <li>Confirm the current modeling stack: Argus Enterprise plus the two or three internal Excel models. Which model is the actual gating model in the room?</li>
+        <li>What is the documented hold-period assumption used in those models today, and how often does the assumption match the realized hold?</li>
+        <li>If we shifted the front-end gate from IRR to cash-on-cash, what threshold would Jack want to test, and would Jason and Kenneth be open to that change?</li>
+        <li>Is sensitivity analysis (rent growth, cap rate, vacancy, cap-ex) part of the standard underwriting today, or done case by case?</li>
+        <li>What does the sell-hold analysis look like today on existing assets, and how often is it run?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="icon">D</div>
+      <h3>Brokerage and Sourcing Ecosystem</h3>
+      <p>The "shops doing it themselves" thesis needs evidence the four-way working session can defend.</p>
+      <ul>
+        <li>Which specific shops or individuals has Jack been getting the "we are buying for ourselves first" feedback from, and over what time window?</li>
+        <li>Roughly how many post-COVID shops fit that profile, and how does Jack want to quantify it for the four-way working session?</li>
+        <li>Where does the working top-20 list live today, and what fields does it have on each entry?</li>
+        <li>What does Jack want the top-20 list to do, mechanically: weekly outreach cadence, monthly check-ins, a shared dashboard, a CRM record?</li>
+        <li>Beyond brokers, are there owner-operators, family offices, or developers who should be on a parallel list as equity or co-GP partners?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="icon">E</div>
+      <h3>Technology and Data Infrastructure</h3>
+      <p>This is the substance of the May 1 deep-dive. Need a real inventory before recommending anything.</p>
+      <ul>
+        <li>What systems are in use today: accounting, asset management, lease administration, CRM, market data (CoStar, Reonomy, Placer, Yardi, MRI, others)?</li>
+        <li>Which of those systems do Jack and the brokerage team actually log into on a weekly basis?</li>
+        <li>What has Jack's Claude experimentation looked like over the past month, and which tasks did it help with most?</li>
+        <li>What does Jack believe the firm's appetite is, in dollar terms, for new technology spend over the next twelve months?</li>
+        <li>Is there an internal owner today for technology decisions, or has it historically been a principal-by-principal call?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="icon">F</div>
+      <h3>Disposition and LP Attraction</h3>
+      <p>The capital-raise question depends on demonstrating returned capital. Confirming the disposition picture is part of the baseline.</p>
+      <ul>
+        <li>Over the last five years, how many assets has the firm sold, and what is the rough realized IRR distribution on those exits?</li>
+        <li>How is the sell-hold conversation structured today: ad hoc, annual, asset-by-asset trigger?</li>
+        <li>If a new LP asked tomorrow "show me the last three full-cycle deals," what is the answer, and is that answer compelling?</li>
+        <li>What posture do Jason and Kenneth have on programmatic dispositions: open to it, cautious, opposed?</li>
+        <li>Would the principals consider a separate vehicle structured around a shorter hold and faster recycle to attract a different LP profile?</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- WHAT I NEED FROM YOU -->
+<section id="your-move">
+  <div class="fade-in">
+    <span class="section-label">06 / What I Need From You</span>
+    <h2>Three Things, Then We Move</h2>
+    <p class="lead">This document is built for your review. The aim is full buy-in on the current state we have captured here, plus your read on what needs to go up to Jason and Kenneth for discussion or decision before we lock in the acquisition strategy and the project plan that follows from it.</p>
+  </div>
+  <div class="cards-3 fade-in">
+    <div class="card">
+      <div class="icon">01</div>
+      <h3>Review and Mark Up</h3>
+      <p>Read the recap, the math picture, the SWOT, and the five problems. Catch anything that is not accurate, anything I framed in a way that does not match how you would say it, and anything I missed. Mark it up however is fastest for you and send it back.</p>
+    </div>
+    <div class="card">
+      <div class="icon">02</div>
+      <h3>Answer Where You Can</h3>
+      <p>Walk the six themes of confirmation questions in order. Where you have an answer or a number, put it down. Where you do not, leave it open and we will work through it together. The point is a confirmed baseline before anything else moves.</p>
+    </div>
+    <div class="card">
+      <div class="icon">03</div>
+      <h3>Flag What Goes Up</h3>
+      <p>For any question or open item that needs Jason and Kenneth to weigh in, flag it. Tell me whether you and I should bring it to them together, or whether you think they need to bring it to me first. The goal is one shared current state and one acquisition strategy that everyone agrees on, north star to first steps.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  AUDIA Consulting · Prepared for Baker Katz · May 1, 2026<br>
+  <span style="opacity:.5; font-size:.78rem;">Confidential: working document for Brian Audia and Jack Moody</span>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  window.addEventListener('scroll', () => {
+    document.getElementById('topNav').classList.toggle('scrolled', window.scrollY > 50);
+  });
+</script>
+
+</body>
+</html>
